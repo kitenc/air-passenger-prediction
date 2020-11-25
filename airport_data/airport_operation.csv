@@ -1,5 +1,4 @@
-﻿Date,Facility,Air,Air,General,Military,Total
-Date,Facility,Air_Carrier,Air_Taxi,General_Aviation,Military,Total operation
+﻿Date,Facility,Air_Carrier,Air_Taxi,General_Aviation,Military,Total operation
 01/01/2011,ATL,"1,685",409,6,1,"2,101"
 01/01/2011,BOS,388,287,21,0,696
 01/01/2011,CLT,733,422,28,0,"1,183"
