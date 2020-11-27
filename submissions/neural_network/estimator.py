@@ -60,12 +60,11 @@ def get_nonlinear_estimator(X, Y, LR=1000):
 
     # Build the neural network
     model = Sequential()
-    model.add(Dense(1, input_shape=(X_train.shape,), activation = 'relu'))
-    model.add(Dense(13, input_shape=(3,), activation='relu'))
-    model.add(Dense(13, activation='relu'))
-    model.add(Dense(13, activation='relu'))
-    model.add(Dense(13, activation='relu'))
-    model.add(Dense(13, activation='relu'))
+    model.add(Dense(10, input_shape=(X_train.shape[1],), activation = 'relu'))
+    model.add(Dense(10, activation='relu'))
+    model.add(Dense(10, activation='relu'))
+    model.add(Dense(10, activation='relu'))
+    model.add(Dense(10, activation='relu'))
     model.add(Dense(1,))
     # Choose loss function and optimizer
     model.compile(optimizer=Adam(learning_rate=LR), loss='sgd')
