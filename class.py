@@ -5,13 +5,16 @@ import pandas as pd
 class feature_merge():
     def __init__(self):
         pass
-        
+
+    def fit(self, X_df, y_array):
+        pass
+
     def fit_transform(self, X):
-        external = pd.read_csv(r"submissions\use_external_data\external_data_mod.csv", header=0)
+        external = pd.read_csv(r"submissions\use_external_data\external_data_mod.csv")
         external.loc[:,"Date"] = pd.to_datetime(external.loc[:,"Date"])
         
         # define the departure and arrival dataframe
-        col_dep = ['d_' + name for name in list(external_data.columns)]
+        col_dep = ['d_' + name for name in list(external.columns)]
         col_arr = [w.replace('d_', 'a_') for w in col_dep]
 
         # adjust the column name for merge
@@ -27,7 +30,7 @@ class feature_merge():
         d_external.columns = col_dep
         a_external.columns = col_arr
 
-        # merge with X_encoded
+         # merge with X_encoded
         X_encoded = X.copy()
         X_encoded.loc[:,'DateOfDeparture'] = pd.to_datetime(X_encoded.loc[:,'DateOfDeparture'])
         X_encoded = pd.merge(X_encoded, d_external, how='left', on=['DateOfDeparture', 'Departure'],
@@ -38,7 +41,7 @@ class feature_merge():
         # compute geographic distance
         X_encoded["Distance"] = X_encoded.apply(
                 lambda x: geodesic(
-                (x["d_latitude"],x["d_longitude"]),(x["a_latitude"],x["a_longitude"])
+                (x["d_Latitude"],x["d_longitude"]),(x["a_Latitude"],x["a_longitude"])
                 ).km, axis=1)
 
         X_encoded = X_encoded.join(pd.get_dummies(X_encoded.loc[:,'Departure'], prefix='d'))
@@ -64,4 +67,5 @@ class feature_merge():
         X_encoded = X_encoded.drop('Departure', axis=1)
         X_encoded = X_encoded.drop('Arrival', axis=1)
         X_encoded = X_encoded.drop('DateOfDeparture',axis = 1)
+        
         return X_encoded
