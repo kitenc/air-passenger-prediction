@@ -12,6 +12,7 @@ import holidays
 from geopy.distance import geodesic
 
 def _nextworkday(date):
+    Holidays_US = holidays.US()[dt.date(2011,7, 1):dt.date(2013,6, 5)] + holidays.US()[dt.date(2012,1, 1):dt.date(2012,12, 31)]
     one_day = dt.timedelta(days=1)
     next_day = date + one_day 
     while next_day.weekday() in holidays.WEEKEND or next_day in Holidays_US:
@@ -19,6 +20,7 @@ def _nextworkday(date):
     return (next_day - date).days
 
 def _lastworkday(date):
+    Holidays_US = holidays.US()[dt.date(2011,7, 1):dt.date(2013,6, 5)] + holidays.US()[dt.date(2012,1, 1):dt.date(2012,12, 31)]
     one_day = dt.timedelta(days=1)
     last_day = date - one_day 
     while last_day.weekday() in holidays.WEEKEND or last_day in Holidays_US:
@@ -29,9 +31,6 @@ def _lastworkday(date):
 def _merge_external_data(X):
     import datetime as dt
     import holidays
-
-    #get holidays 
-    Holidays_US = holidays.US()[dt.date(2011,7, 1):dt.date(2013,6, 5)] + holidays.US()[dt.date(2012,1, 1):dt.date(2012,12, 31)]
 
     filepath = os.path.join(
             os.path.dirname(__file__), 'external_data.csv')
