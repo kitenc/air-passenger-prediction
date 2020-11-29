@@ -4,7 +4,12 @@ from sklearn.compose import make_column_transformer
 from sklearn.preprocessing import OrdinalEncoder
 from sklearn.pipeline import make_pipeline
 from sklearn.ensemble import RandomForestRegressor
-
+import os
+from sklearn.impute import SimpleImputer
+import xgboost
+import datetime as dt
+import holidays
+from geopy.distance import geodesic
 
 def _nextworkday(date):
     one_day = dt.timedelta(days=1)
@@ -28,9 +33,8 @@ def _merge_external_data(X):
     #get holidays 
     Holidays_US = holidays.US()[dt.date(2011,7, 1):dt.date(2013,6, 5)] + holidays.US()[dt.date(2012,1, 1):dt.date(2012,12, 31)]
 
-    from geopy.distance import geodesic
     filepath = os.path.join(
-            os.path.dirname(__file__), 'external_data_mod.csv')
+            os.path.dirname(__file__), 'external_data.csv')
 
     external = pd.read_csv(filepath)
     external.loc[:,"Date"] = pd.to_datetime(external.loc[:,"Date"])
@@ -107,7 +111,7 @@ def _merge_external_data(X):
                            'd_iso_region','a_iso_region'], inplace=True)
 
 
-    for column in list(X_encoded.columns[X_train.isnull().sum() > 0]):
+    for column in list(X_encoded.columns[X_encoded.isnull().sum() > 0]):
         mean_val = X_encoded[column].mean()
         X_encoded[column].fillna(mean_val, inplace=True)
       
@@ -127,7 +131,6 @@ def _merge_external_data(X):
 
 def get_estimator():
     date_merger = FunctionTransformer(_merge_external_data)
-    import xgboost
     regressor = xgboost.XGBRegressor(colsample_bytree=0.7,
                      gamma=0.3,                 
                      learning_rate=0.07,
