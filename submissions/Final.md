@@ -1,48 +1,68 @@
+---
+output:
+  word_document: default
+  html_document: default
+---
 # <center> Final Report - Ramp Challenge</center>
 #### <center> predict the number of air passengers </center>
 
 ## 1. Introduction
 
-Given the limited datasets about early booking time, departure and arrival information, our goal is to predicting air passengers. Obviously, we need more external datasets to more preciously interpret the target variable('log_PAX'). Many other external factors may affect the actual number of passengers in a specific airline, for example, the weather, the holiday or the weekend, delay time of a specific airline, flights count between two cities and so on. 
-As we have been provided the comprehensive details about weather, we try to find more data about airport analysis(total airline operations, departure and arrival situations), city pair analysis (operations, on-time/delays, etc.) and routes arrangements. All data are collected from Federal Aviation Administration (FAA)’s databases.
-In additions, we have also considered data about the socioeconomic conditions (city GDP, city or state population/increase, etc.) obtained from open source website and the Federal Reserve Bank (FRED). As season changes and upsurge in flights due to holidays, we have also taken the major public and school holidays into account. Appendix A​ shows the list of data sources.
+Given the limited datasets about early booking time, departure, and arrival information, our goal is to predicting air passengers. Obviously, we need more external datasets to more preciously interpret the target variable('log_PAX'). 
+
+We first consider the influential factors from the inherent characteristics of airports, and then think about potential economic factors, demographic factors, geographical factors and time factors.
+As we have been provided with the comprehensive details about the weather for corresponding days, we collect data on airport characteristics, including total airline operations, departure and arrival situations, routes arrangements and operations between different airport pairs, including on-time flights and delays, etc. All data are collected from the Federal Aviation Administration (FAA)’s databases.
+In addition, we consider data about the socioeconomic conditions, including city GDP, city or state population/increase, etc., which are obtained from an open-source website and the Federal Reserve Bank. As season changes and an upsurge in flights due to holidays, we have also taken the major public holidays into account, which is directly provided by python library. Appendix A​ shows a list of data sources.
 
 ## 2. Data Preprocessing and Model Selection
 
-Firstly, we merge all external data on 'airport' and 'Date' into a single file. For further regression, We used daily data on air traffic and transformed the departure and destination airports with different prefix. We turn number of year, month,day, weekday and week into a series of 0-1 dummy variables. We compute the next workday, last workday to represent the leisure time and distance with longitude and latitude of each airport to represent the distance. We considered extreme weather indicators which might lead to flight delays or cancellations like minimum temperature, maximum wind, visibility, etc. and change the 'event' column into dummies columns, including thunderstorms and snowstorms. Then, we start the trails of models. We experiment methods, like Multi-regression,Random Forest, neural network and etc.
+FFirstly, we merged all external data through the keys 'Airport' and 'Date' into a single file. For better explanations, we used daily data on air traffic and transformed the departure and destination airports with different prefixes in order to add condition variables of pairs, then turning the number of years, months, days, weekdays and weeks into a series of 0-1 dummy variables. Especially, we computed the next workday and the last workday to represent the leisure time, as well as distances between different pairs of airports by longitude and latitude data to represent the flight distance. For the economics data, we considered the GDP and census data in different years of both the corresponding state and the city, for the reason that most of the airports are at state capitals. Extreme weather indicators that might lead to flight delays or cancellations like minimum temperature, maximum wind, visibility, etc were also added. and the 'event' variable was also changed into dummies columns, including thunderstorms and snowstorms. 
+When dealing with missing values, we use the mean or 'ffill' (like for oil price) method corresponding to the actual meaning of the variable to fill the missing values.
+Then, we did experiments with several different approaches, such as Multi-regression, Random Forest, neural network and etc.
 
 #### linear regression and Random forest
-As respects to Multi-regression, we tried Linear regression, Ridge and Lasso from Scikit-Learn packages, which get automatically feature selection. And the Average RMSE remains above 0.43, which means simple linear regression may not take effect here. 
+
+With respect to Multi-regression, we tried Linear regression, Ridge, and Lasso from Scikit-Learn packages that provide automatic feature selection. The Average RMSE remains above 0.43, which indicates that simple linear regression may not take effect here. 
 
 #### Neural Network
-Afterwards, we try the simple neural network. As we know, neural network is mostly used in classification problems. But when we slightly change the final dimension of output layer, we may turn Neural network into non-linear regression method with one output at the final layer to do the regression issue. At the very beginning, we use only one hidden layer and choose 'relu' as activation function and Adam as optimizer. The main parameters are (batch size=64 and loss function=mse). The result is more than 0.5, which acting not pretty well. Afterwards, we add more layers and imcrease the batch size to 128, as small batch-size will decrease the generation error. RMSE remain above 0.4, even though we add more layers and change the parameters. Taking into account the limits of neural network, that we cannot interpret the final models with multiple layer neural networks, we decided to switch to another model.
+
+Afterward, we tried a feed-forward neural network model. By slightly changing the final dimension of the output layer, we could turn the Neural network from the classical classifier to a non-linear regression method with one output at the final layer to do the regression issue. At the very beginning, we used only one hidden layer and choose the ReLu function as the activation function and Adam as the optimizer. The main parameters are the batch size and loss function, for which here we choose 64 and mse respectively. The RMSE result is more than 0.5, which acting not pretty well. We added more layers and increased the batch size to 128, as a smaller batch-size tends to decrease the generation error. However, RMSE remained above 0.4, even though with more layers and parameter tuning. Taking into account the limits of this simple structured neural network, and also the fact that it will be difficult to interpret the final models with multiple layer neural networks, we decide to switch to another model.
 
 #### XGBoost
-The algorithm is one of the boosting algorithm, which can integrate weak learners into a powerful learner by learning higher-order interactions between features. As every iteration try to fit the residual of the previous k-1 base learners, the newly base learner will move greatly towards the direction of steepest gradient-descent, which lower RMSE for sure.
 
-First, we try the default parameter using XGBoost in Python, where we get RMSE lower than 0.4. Accordingly, we decided to do the feature selection and preprocessing. We change our preprocessing methods to our external data. We add conditions of both and departure and arrival airports to the variables, merging data to the original dataframe. With coordinates in external data, we compute the geographic distance between airports. Because we can not integrate the 'Holidays' into the external data. We get dummies about weekdays and weeks in a year to reflect holidays which may occur in a fixed period. Missing value will use mean or 'ffill'(like for oil price) method to check all missing value.
+We thought about using boosting algorithms since we have hundreds of features in total, while boosting can integrate weak learners into a powerful learner by learning higher-order interactions between features. As one of the most powerful boosting algorithms, XGBoost has the training process that every iteration tries to fit the residual of the previous k-1 base learners, so as to enforce the newly base learner move greatly towards the direction of steepest gradient-descent, which lower RMSE for sure. Besides, XGBoost adds regularization, which can help prevent overfitting problems.
 
-Secondly, Thanks to sklearn package, we simply use the default estimator of XGBoost to conduct feature ranking with recursive feature elimination and cross-validated selection of the best number of features. We finally get the 56 parameter out of 208 parameter. Luckily, we get a nearly symmetric parameter for departure parameter and arrival parameter. . These included time period (weekday, week, month, days, next work day, last work day and etc.), air travel and airport analysis (Total operations, Actual Departure and Arrival, Delayed Arrival and etc.), socioeconomic factors (GDP, POP, RPI and Death Rate, Birth Rate and population) and geographic attributes (longitude, latitude, elevation, distance).
+First, we tried the default parameter using the XGBoost package in Python, where we got RMSE lower than 0.4. Accordingly, we decided to do the feature selection by ranking all the features with recursive feature elimination and cross-validated selection (cv=3) of the best number of features. We finally got 56 parameters out of 208 parameters. By using departure and destination as parameter prefixes, the parameters all appear in pairs. Luckily, we got a nearly symmetric parameter for two sides. Selected features include time period (weekday, week, month, days, next workday, last workday, etc., air travel and airport analysis data (total operations, actual departure and arrival amounts, delayed arrivals, etc.), economic and demographic factors (GDP, populations, birth and death rates, etc.) and geographic attributes (longitude, latitude, elevation, distance).
 
-After doing all these, we reach RMSE(0.3560 +/- 0.0192).
+After feature selection, we decreased our RMSE by around 0.05.
 
 ## 3. Parameter Tuning
-We first looked for a reasonable ​n_estimator ​with fixed parameter of others. From the previous loss curve, we knew that the XGBoost method rushes to over-fitting, which means we can lower the ​learning_rate​ without incurring a large loss but only to increase the time consumption. So we fix learning rate at 0.07 and max_child weight at 6. We choose n_estimator within the range $[500,2000]$, step size=100 to compute the RMSE. From the computation, we can find that the RMSE will stop reducing when n_estimator is larger than 1700. So we fix n_estimator to 1700.
 
-As to learning rate, we conduct the same things as to n_estimator. We get the optimal learning rate for our cases, which is 0.05.
+We first looked for a reasonable ​n_estimator ​with other fixed parameters. From the previous loss curve, we knew that the XGBoost method might rush to over-fitting if using inappropriate parameters of base learners. So we fix max-depth at 7 and min_child_weight at 5. We choose n_estimator within the range $[500,2000]$, step size=100 to compute the RMSE. From the computation, we can find that the RMSE will converge when the n_estimator is larger than 1700. So we first set n_estimator to 1700. As to the learning rate, we conduct the same things as to n_estimator. We get the optimal learning rate for our cases, which is 0.05.
 
-Finally, we focused on the parameters 'max_depth'​ and '​min_child_weight​'. The former limits the depth of decision trees and the latter prevents an arbitrary node with few samples from being further split. We used the grid search method to get the optimal combination: ​max_depth ​of 6 and ​min_child_weight ​of 3. 
+Thirdly, we focused on other parameters including 'max_depth'​ and '​min_child_weight​'. The former limits the depth of decision trees and the latter prevents an arbitrary node with few samples from being further split. We used the grid search method to get the optimal combination: ​max_depth ​of 6 and ​min_child_weight ​of 3. . We tried to tune other parameters including regularization alpha and lambda, and gamma using the same approach.
 
-| Regressor type | Score on test set 
+| Regressor type | Cross-validation Score
 |------|------|
 |   Lasso Regression  | 0.5482 +/- 0.0144|
 |   Random Forest (60 estimators)  |0.4340 +/- 0.0267|
 |   Random Forest (300 estimators)| 0.4310 +/- 0.0257|
 |   Neural network (batch size=128)| 0.4736 |
-|   XGBoost(default parameter)| 0.3560 +/- 0.0192|
-|   XGBoost(n_estimator$\geq$1700) |0.3528 +/- 0.0188|
-|   XGBoost(n_estimator=1700, learning rate=0.05) |0.3317 +/- 0.0174|
+|   XGBoost(n_estimator=1700) |0.3317 +/- 0.0174|
 |Final Submission of XGBoost|0.265|
+
+Most sophisticated models are criticized for their bad interpretability as to a single feature, especially for our prior trial in Neural Network. When it comes to the XGBoost with the decision tree as a base learner, we can even plot a single tree easily when the max depth is smaller than 4. In our case, It may not simple to give a comprehensive plot towards that. Fortunately, Python offers us a tool to plot the difference and ranking in our model, which shows clearly that the most powerful predictor was the Weeks to departure for a designated flight. 
+
+This was followed by Total operations of the airport, days and weeks of the airline, which at the same time represent leisure time difference. 
+From the model we have chosen, the time metrics generally works as a strong indicator of airline passengers. The closer to the leisure time, the more passengers take airplanes to. What we hadn’t expected though was that altitude played a role and that a lower altitude was favored by passengers. Also, socioeconomic conditions generally have a moderate impact on the results.
+Except for distance, Geographical features make a difference in final results but not too much. 
+
+As to a pair of datasets, we can conclude that the airlines between two prosperous, indicating with respect to GDP, Population(population, death rate, and birth rate)earn more airline passengers. A longer distance between the two cities also contributes to a higher number of passengers. It seems that our model is consistent with our simple instincts. 
+
+In all, the external data and XCGBoost model have successfully lowered the RMSE to 0.265. Given the comprehensive external data and multiple parameters tuning, we get seemingly reasonable features and thus an adoptable way to future prediction.
+
+## 5. Model Review
+In this final project, we replenish the thin datasets after brainstorming in aspects of socioeconomic, airport details and etc. After experimenting with different models from Scikit-learn and Keras, and methods to do feature selection, we have chosen the XGBoost as our starting point to improve.
 
 # Appendix A
 
